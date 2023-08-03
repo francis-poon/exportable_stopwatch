@@ -4,6 +4,8 @@ import csv
 import json
 import os
 
+os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
 initial_count = 18000
 counter = initial_count
 running = False
@@ -11,11 +13,14 @@ csv_data = [0]
 full_output_filename = ""
 
 config = None
-with open('config.json', 'r') as f:
+if os.path.exists('config.json'):
+  f = open('config.json', 'r')
   config = json.load(f)
-if config is None and 'output_dir' not in config or not os.path.exists(config['output_dir']):
-  print("Using current dir as output dir")
-  file_parent_dir = ""
+  f.close()
+if config is None or 'output_dir' not in config or not os.path.exists(config['output_dir']):
+  print("Using current dir " + os.path.dirname(os.path.realpath(__file__)) + " as output dir")
+  print(os.getcwd())
+  file_parent_dir = os.path.dirname(os.path.realpath(__file__)) + "\\"
 else:
   file_parent_dir = config['output_dir']
 

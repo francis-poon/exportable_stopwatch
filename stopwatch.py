@@ -1,12 +1,24 @@
 import tkinter as Tkinter
 from datetime import datetime
 import csv
+import json
+import os
 
 initial_count = 18000
 counter = initial_count
 running = False
-csv_data = []
-file_parent_dir = "E:\\Francis Poon\\HobbyEnjoyment\\dev\\game_dev\\unity_projects\\tower_defense_02\\dev_time_tracking\\"
+csv_data = [0]
+full_output_filename = ""
+
+config = None
+with open('config.json', 'r') as f:
+  config = json.load(f)
+if config is None and 'output_dir' not in config or not os.path.exists(config['output_dir']):
+  print("Using current dir as output dir")
+  file_parent_dir = ""
+else:
+  file_parent_dir = config['output_dir']
+
 def counter_label(label):
     def count():
         if running:
@@ -34,25 +46,35 @@ def counter_label(label):
 def Start(label):
     global running
     global csv_data
+    global full_output_filename
     running=True
     counter_label(label)
     start['state']='disabled'
     stop['state']='normal'
-    export['state']='normal'
+    #export['state']='normal'
     now = datetime.now()
-    csv_data += [[now.strftime("%m/%d/%Y"), now.strftime("%H:%M:%S")]]
+    full_output_filename = file_parent_dir + now.strftime("%m%d%Y.csv")
+    csv_data[0] = [now.strftime("%m/%d/%Y"), now.strftime("%H:%M:%S")]
    
 # Stop function of the stopwatch
 def Stop():
     global running
     global counter
     global csv_data
+    global full_output_filename
     start['state']='normal'
     stop['state']='disabled'
     running = False
     now = datetime.now()
-    csv_data[len(csv_data)-1] += [now.strftime("%H:%M:%S"), datetime.fromtimestamp(counter-1).strftime("%H:%M:%S")]
+    csv_data[0] += [now.strftime("%H:%M:%S"), datetime.fromtimestamp(counter-1).strftime("%H:%M:%S")]
     counter = initial_count
+    
+    file_mode = "w"
+    if os.path.exists(full_output_filename):
+      file_mode = "a"
+    with open(full_output_filename, file_mode, newline='') as f:
+      writer = csv.writer(f)
+      writer.writerow(csv_data[0])
    
 # Reset function of the stopwatch
 def Reset(label):
@@ -93,9 +115,9 @@ label.pack()
 f = Tkinter.Frame(root)
 start = Tkinter.Button(f, text='Start', width=6, command=lambda:Start(label))
 stop = Tkinter.Button(f, text='Stop',width=6,state='disabled', command=Stop)
-export = Tkinter.Button(f, text='Export',width=6, state='disabled', command=Export)
+#export = Tkinter.Button(f, text='Export',width=6, state='disabled', command=Export)
 f.pack(anchor = 'center',pady=5)
 start.pack(side="left")
 stop.pack(side ="left")
-export.pack(side="left")
+#export.pack(side="left")
 root.mainloop()
